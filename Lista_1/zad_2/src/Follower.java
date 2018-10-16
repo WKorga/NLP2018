@@ -1,10 +1,10 @@
 import java.util.List;
 
-public class BiFollower {
+public class Follower {
     private int occurences;
     private String follower;
 
-    public BiFollower(int occurences, String follower) {
+    public Follower(int occurences, String follower) {
         this.occurences = occurences;
         this.follower = follower;
     }
