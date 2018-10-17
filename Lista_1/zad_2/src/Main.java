@@ -1,15 +1,14 @@
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.util.*;
 
 public class Main {
     public static final String BIGRAMS_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\poleval_2grams.txt";
     public static final String TRIGRAMS_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\poleval_3grams.txt";
     public static final String DICTIONARY_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\dictionary.txt";
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws IOException {
         runProcedureForTrigrams();
     }
-    private static void runProcedureForTrigrams() throws FileNotFoundException{
+    private static void runProcedureForTrigrams() throws IOException {
         Scanner scanner = new Scanner(new File(TRIGRAMS_FILE));
         HashMap<String,List<TriFollower>> trigrams = new HashMap<>();
         while (scanner.hasNextLine()){
@@ -26,22 +25,28 @@ public class Main {
                 trigrams.put(line[1],followers);
             }
         }
+        FileWriter fileWriter= new FileWriter("tri_result.txt");
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
         for (int i=0;i<20;i++){
-            String word = (String)trigrams.keySet().toArray()[new Random().nextInt(trigrams.size())];
-            System.out.print(word+" ");
+            String word = "<BOS>";
             do{
                 List<TriFollower> followers = trigrams.get(word);
-                TriFollower follower = followers.get(new Random().nextInt(followers.size()));
-                if(follower.getFollower2()==null)
-                    break;
 
-                System.out.print(follower.getFollower1()+" "+follower.getFollower2()+" ");
+                TriFollower follower = followers.get(new Random().nextInt(followers.size()));
+                if(follower.getFollower2()==null){
+                    word=follower.getFollower1();
+                    if(!word.equals("<EOS>"))
+                        bufferedWriter.write(word+" ");
+                    continue;
+                }
+                bufferedWriter.write(follower.getFollower1()+" "
+                        +(follower.getFollower2().equals("<EOS>")?"":follower.getFollower2()+" "));
                 word=follower.getFollower2();
-            }
-            while (trigrams.containsKey(word));
+            } while (!word.equals("<EOS>")&&trigrams.containsKey(word));
         }
+        bufferedWriter.close();
     }
-    private static void runProcedureForBigrams() throws FileNotFoundException {
+    private static void runProcedureForBigrams() throws IOException {
         Scanner scanner = new Scanner(new File(BIGRAMS_FILE));
         HashMap<String,List<BiFollower>> bigrams = new HashMap<>();
         while (scanner.hasNextLine()){
@@ -57,15 +62,17 @@ public class Main {
                 bigrams.put(line[1],followers);
             }
         }
+        FileWriter fileWriter= new FileWriter("bi_result.txt");
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
         for (int i=0;i<20;i++){
-            String word = (String)bigrams.keySet().toArray()[new Random().nextInt(bigrams.size())];
-            System.out.print(word+" ");
+            String word = "<BOS>";
             do{
                 List<BiFollower> followers = bigrams.get(word);
                 word = followers.get(new Random().nextInt(followers.size())).getFollower();
-                System.out.print(word+" ");
-            }
-            while (bigrams.containsKey(word));
+                if(!word.equals("<EOS>"))
+                    bufferedWriter.write(word+" ");
+            } while (!word.equals("<EOS>")&&bigrams.containsKey(word));
         }
+        bufferedWriter.close();
     }
 }
