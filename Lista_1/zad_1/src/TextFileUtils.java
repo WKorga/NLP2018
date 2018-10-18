@@ -19,16 +19,16 @@ public class TextFileUtils {
         scanner.close();
         bufferedWriter.close();
     }
-    public static void removeSpacesAndUppercaseToFile(String textFilePath, String targetFilePath) throws IOException {
-        int words = 100;
-        Scanner scanner = new Scanner(new File(textFilePath));
-        FileWriter fileWriter= new FileWriter(targetFilePath);
-        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-        while(scanner.hasNext()&&words>0){
-            bufferedWriter.write(scanner.next().toLowerCase());
-            words--;
-        }
-        scanner.close();
-        bufferedWriter.close();
-    }
+//    public static void removeSpacesAndUppercaseToFile(String textFilePath, String targetFilePath) throws IOException {
+//        int words = 100;
+//        Scanner scanner = new Scanner(new File(textFilePath));
+//        FileWriter fileWriter= new FileWriter(targetFilePath);
+//        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+//        while(scanner.hasNext()&&words>0){
+//            bufferedWriter.write(scanner.next().toLowerCase());
+//            words--;
+//        }
+//        scanner.close();
+//        bufferedWriter.close();
+//    }
 }

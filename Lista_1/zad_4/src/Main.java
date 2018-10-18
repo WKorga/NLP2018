@@ -40,7 +40,6 @@ public class Main {
                 bigrams.put(line[1],followers);
             }
         }
-
         scanner = new Scanner(new File(TRIGRAMS_FILE));
         HashMap<String,List<TriFollower>> trigrams = new HashMap<>();
         while (scanner.hasNextLine()){
@@ -57,7 +56,6 @@ public class Main {
                 trigrams.put(line[1],followers);
             }
         }
-
         scanner.close();
         List<ScoredSentence> sentences = new ArrayList<>();
         for (List<String> permutation:permutations){
