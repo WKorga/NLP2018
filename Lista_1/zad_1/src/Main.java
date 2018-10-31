@@ -11,7 +11,7 @@ public class Main {
         FileWriter fileWriter = new FileWriter(NO_SPACES_FILE);
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
         List<String> base = new ArrayList<>();
-        for (int i=0;i<100;i++){
+        for (int i=0;i<400;i++){
             if (scanner.hasNext()){
                 String word = scanner.next();
                 base.add(word);

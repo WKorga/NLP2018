@@ -1,12 +1,13 @@
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
     public static final String BIGRAMS_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\poleval_2grams.txt";
     public static final String TRIGRAMS_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\poleval_3grams.txt";
     public static final String DICTIONARY_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\dictionary.txt";
     public static void main(String[] args) throws IOException {
-        runProcedureForBigrams();
+        runProcedureForTrigrams();
     }
     private static void runProcedureForTrigrams() throws IOException {
         Scanner scanner = new Scanner(new File(TRIGRAMS_FILE));
@@ -27,33 +28,34 @@ public class Main {
         }
         FileWriter fileWriter= new FileWriter("tri_result.txt");
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-
         for (int i=0;i<20;i++){
-            String word = "<BOS>";
+            String firstWord = "<BOS>";
+            List<TriFollower> followers = trigrams.get(firstWord);
+            TriFollower follower=null;
             do{
-                List<TriFollower> followers = trigrams.get(word);
-                int occurences=0;
-                for (TriFollower follower:followers){
-                    occurences+=follower.getOccurrences();
+                if (followers.size()==0)
+                    break;
+                int occurrences=0;
+                for (TriFollower f:followers){
+                    occurrences+=f.getOccurrences();
                 }
-                int selected = new Random().nextInt(occurences);
-                for (TriFollower follower:followers){
-                    if (follower.getOccurrences()<selected)
-                        selected-=follower.getOccurrences();
-                    else {
-                        if(follower.getFollower2()==null){
-                            word=follower.getFollower1();
-                            if(!word.equals("<EOS>"))
-                                bufferedWriter.write(word+" ");
-                            break;
-                        }
-                        bufferedWriter.write(follower.getFollower1()+" "
-                                        +(follower.getFollower2().equals("<EOS>")?"":follower.getFollower2()+" "));
-                        word=follower.getFollower2();
-                        break;
+                int selected = new Random().nextInt(occurrences);
+                for (TriFollower f:followers) {
+                    if (f.getOccurrences() < selected){
+                        selected -= f.getOccurrences();
+                        continue;
                     }
+                    follower=f;
+                    break;
                 }
-            } while (!word.equals("<EOS>")&&trigrams.containsKey(word));
+                bufferedWriter.write(follower.getFollower1()+" ");
+                firstWord = follower.getFollower1();
+                final String f2 = follower.getFollower2();
+                followers = trigrams.get(firstWord)
+                        .stream().filter(t->t.getFollower1().equals(f2)).collect(Collectors.toList());
+            }while (!follower.getFollower2().equals("<EOS>")&&trigrams.containsKey(firstWord));
+            if (follower!=null)
+                bufferedWriter.write((follower.getFollower2().equals("<EOS>")?"":follower.getFollower2()+" "));
         }
         bufferedWriter.close();
     }

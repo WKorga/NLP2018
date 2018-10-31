@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
     public static final String BIGRAMS_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\poleval_2grams.txt";
@@ -27,22 +28,22 @@ public class Main {
         }
         FileWriter fileWriter= new FileWriter("tri_result.txt");
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-        for (int i=0;i<20;i++){
-            String word = "<BOS>";
-            do{
-                List<TriFollower> followers = trigrams.get(word);
 
-                TriFollower follower = followers.get(new Random().nextInt(followers.size()));
-                if(follower.getFollower2()==null){
-                    word=follower.getFollower1();
-                    if(!word.equals("<EOS>"))
-                        bufferedWriter.write(word+" ");
-                    continue;
-                }
-                bufferedWriter.write(follower.getFollower1()+" "
-                        +(follower.getFollower2().equals("<EOS>")?"":follower.getFollower2()+" "));
-                word=follower.getFollower2();
-            } while (!word.equals("<EOS>")&&trigrams.containsKey(word));
+        for (int i=0;i<20;i++){
+            String firstWord = "<BOS>";
+            List<TriFollower> followers = trigrams.get(firstWord);
+            TriFollower follower;
+            do{
+                follower = followers.get(new Random().nextInt(followers.size()));
+                bufferedWriter.write(follower.getFollower1()+" ");
+                firstWord = follower.getFollower1();
+                final String f2 = follower.getFollower2();
+                followers = trigrams.get(firstWord)
+                        .stream().filter(t->t.getFollower1().equals(f2)).collect(Collectors.toList());
+                if (followers.size()==0)
+                    break;
+            }while (!follower.getFollower2().equals("<EOS>")&&trigrams.containsKey(firstWord));
+            bufferedWriter.write((follower.getFollower2().equals("<EOS>")?"":follower.getFollower2()+" "));
         }
         bufferedWriter.close();
     }
