@@ -4,9 +4,10 @@ import java.util.*;
 public class Main {
     public static final String TEXT_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\task3_test_segmented.txt";
     public static final String DICTIONARY_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\dictionary.txt";
+    public static final String UNIGRAMS_FILE = "D:\\Programowanie\\Java\\NLP2018\\poleval_unigrams.txt";
     public static final String NO_SPACES_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_1\\no_spaces_lowercase.txt";
     public static void main(String[] args) throws IOException {
-        //TextFileUtils.createDictionaryToFile(TEXT_FILE,DICTIONARY_FILE);
+        //TextFileUtils.createUnigramsToFile(TEXT_FILE,UNIGRAMS_FILE);
         Scanner scanner = new Scanner(new File(TEXT_FILE));
         FileWriter fileWriter = new FileWriter(NO_SPACES_FILE);
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
