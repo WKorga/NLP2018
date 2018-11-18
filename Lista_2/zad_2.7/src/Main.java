@@ -6,8 +6,8 @@ public class Main {
     public static final String PAN_TADEUSZ_FILE = "D:\\Programowanie\\Java\\NLP2018\\Lista_2\\pan_tadeusz.txt";
     private static Map<String,Integer> syllables = new HashMap<>();
     private static Map<String,Integer> unigrams = new HashMap<>();
-    private static Map<String,Map<String,Integer>> bigrams = new HashMap<>();
-    private static Map<String,Map<String,Integer>> reversedBigrams = new HashMap<>();
+    private static Map<String,Map<String,Double>> bigrams = new HashMap<>();
+    private static Map<String,Map<String,Double>> reversedBigrams = new HashMap<>();
     private static Map<String,String> supertags = new HashMap<>();
     private static Map<String,Map<String,Integer>> syllablesPatterns = new HashMap<>();
     private static List<String> tagsPatterns = new ArrayList<>();
@@ -15,10 +15,10 @@ public class Main {
     private static final ArrayList<Character> vowels = new ArrayList<Character>(Arrays.asList('a','e','y','i','o','ą','ę','u','ó'));
     public static void main(String[] args) throws IOException {
         prepareData();
+        generateTwoVerses();
         for(int i=0;i<10;i++){
             generateTwoVerses();
         }
-        //generateTwoVerses();
         return;
     }
     private static void generateTwoVerses() throws IOException {
@@ -45,13 +45,13 @@ public class Main {
                     verse2=new ArrayList<>();
                     break;
                 }
-                secondVersePattern = getRandomKey(sPatterns);
+                secondVersePattern = getRandomIntKey(sPatterns);
                 sPatterns.remove(secondVersePattern);
                 String[] patternArray= secondVersePattern.split(" ");
                 Map<String,Integer> matchingRhymes = rhymes.entrySet().stream().filter(
                         e->Integer.parseInt(patternArray[patternArray.length-1])==syllables.get(e.getKey()))
                         .collect(Collectors.toMap(Map.Entry::getKey,Map.Entry::getValue));
-                rhyme = getRandomKey(matchingRhymes);
+                rhyme = getRandomIntKey(matchingRhymes);
                 matchingRhymes.remove(rhyme);
                 verse2=new ArrayList<>();
                 verse2.add(rhyme);
@@ -60,10 +60,10 @@ public class Main {
 
         FileWriter fileWriter= new FileWriter("results.txt",true);
         PrintWriter printWriter = new PrintWriter(fileWriter);
+        printWriter.println("\n");
         verse1.forEach(s->printWriter.print(s+" "));
         printWriter.write("\n");
         verse2.forEach(s->printWriter.print(s+" "));
-        printWriter.println();
         printWriter.close();
     }
     private static void prepareData() throws FileNotFoundException {
@@ -113,14 +113,14 @@ public class Main {
                 String finalWord = word;
                 bigrams.putIfAbsent(previousWord,new HashMap<>());
                 bigrams.compute(previousWord,(key, map)->{
-                    map.putIfAbsent(finalWord,0);
+                    map.putIfAbsent(finalWord,0.0);
                     map.compute(finalWord,(key2,value)->value+1);
                     return map;
                 });
                 String finalPreviousWord = previousWord;
                 reversedBigrams.putIfAbsent(finalWord,new HashMap<>());
                 reversedBigrams.compute(finalWord,(key, map)->{
-                    map.putIfAbsent(finalPreviousWord,0);
+                    map.putIfAbsent(finalPreviousWord,0.0);
                     map.compute(finalPreviousWord,(key2,value)->value+1);
                     return map;
                 });
@@ -142,6 +142,8 @@ public class Main {
             if (!tagsPatterns.contains(tagsPattern))
                 tagsPatterns.add(tagsPattern);
         }
+        countPPMIValues(bigrams);
+        countPPMIValues(reversedBigrams);
     }
     private static int countSyllables(String word){
         int count =0;
@@ -195,7 +197,7 @@ public class Main {
         //take all followers that satisfy the conditions
         if (!bigrams.containsKey(previousWord))
             return false;
-        Map<String,Integer> followers = bigrams.get(previousWord).entrySet().stream()
+        Map<String,Double> followers = bigrams.get(previousWord).entrySet().stream()
                 .filter(e->{
                     return Integer.parseInt(syllablesPattern.split(" ")[count])==syllables.get(e.getKey())
                             && filterPatterns(tagsPatterns,tagsPattern+" "+supertags.get(e.getKey())).size()>0;
@@ -208,7 +210,7 @@ public class Main {
         String follower=null;
         //as long as there are followers that we havent already checked
         while (!followers.isEmpty()){
-            follower=getRandomKey(followers);
+            follower=getRandomDoubleKey(followers);
             //remove to avoid infinite loop
             followers.remove(follower);
             String nTagsPattern = tagsPattern+" "+supertags.get(follower);
@@ -232,7 +234,7 @@ public class Main {
         if (count==syllablesPattern.length){
             return true;
         }
-        Map<String,Integer> followers = reversedBigrams.get(nextWord).entrySet().stream()
+        Map<String,Double> followers = reversedBigrams.get(nextWord).entrySet().stream()
                 .filter(e->{
                             return !e.getKey().equals("<BOS>")&&Integer.parseInt(syllablesPattern[syllablesPattern.length-count-1])==syllables.get(e.getKey())
                                     && filterPatterns(tagsPatterns,supertags.get(e.getKey())+" "+tagsPattern).size()>0;
@@ -245,7 +247,7 @@ public class Main {
         String follower=null;
         //as long as there are followers that we havent already checked
         while (!followers.isEmpty()){
-            follower=getRandomKey(followers);
+            follower=getRandomDoubleKey(followers);
             //remove to avoid infinite loop
             followers.remove(follower);
             String nTagsPattern = supertags.get(follower)+" "+tagsPattern;
@@ -263,7 +265,7 @@ public class Main {
     private static List<String> filterPatterns(List<String> tagsPatterns, String tagsPattern){
         return tagsPatterns.stream().filter(p->p.contains(tagsPattern)).collect(Collectors.toList());
     }
-    private static String getRandomKey(Map<String,Integer> map){
+    private static String getRandomIntKey(Map<String,Integer> map){
         int occurrences = 0;
         for (Integer value:map.values())
             occurrences+=value;
@@ -279,5 +281,41 @@ public class Main {
             break;
         }
         return key;
+    }
+    private static String getRandomDoubleKey(Map<String,Double> map){
+        double occurrences = 0;
+        for (Double value:map.values())
+            occurrences+=value;
+
+        double selected = new Random().nextDouble()*occurrences;
+        String key = null;
+        for(Map.Entry<String,Double> entry:map.entrySet()){
+            if (entry.getValue() < selected){
+                selected -= entry.getValue();
+                continue;
+            }
+            key=entry.getKey();
+            break;
+        }
+        return key;
+    }
+    private static void countPPMIValues(Map<String,Map<String,Double>> map){
+        int occurrences = 0;
+        for (Integer i:unigrams.values()){
+            occurrences+=i;
+        }
+        for (Map.Entry<String,Map<String,Double>> entry1:map.entrySet()){
+            if (entry1.getKey().equals("<BOS>"))
+                continue;
+            for (Map.Entry<String,Double> entry2:entry1.getValue().entrySet()){
+                if (entry2.getKey().equals("<BOS>"))
+                    continue;
+                double value = Math.max(0,Math.log(
+                        (entry2.getValue()*(double)occurrences)/
+                                (unigrams.get(entry1.getKey())*unigrams.get(entry2.getKey()))
+                ));
+                entry1.getValue().put(entry2.getKey(),value);
+            }
+        }
     }
 }
