@@ -14,36 +14,48 @@ public class Main {
         HashMap<String,List<TriFollower>> trigrams = new HashMap<>();
         while (scanner.hasNextLine()){
             String[] line = scanner.nextLine().split(" ");
-            if(Integer.parseInt(line[0])<6)
+            int occurrences = Integer.parseInt(line[0]);
+            if(occurrences<10)
                 continue;
-            List<TriFollower> entry = trigrams.get(line[1]);
-            if (entry!=null){
-                entry.add(new TriFollower(Integer.parseInt(line[0]),line[2],line.length==4?line[3]:null));
+            List<TriFollower> followers = trigrams.get(line[1]);
+            if (followers!=null){
+                followers.add(new TriFollower(occurrences,line[2],line.length==4?line[3]:null));
             }else {
-                List<TriFollower> followers = new ArrayList<>();
-                followers.add(new TriFollower(Integer.parseInt(line[0]),line[2],line.length==4?line[3]:null));
-
+                followers = new ArrayList<>();
+                followers.add(new TriFollower(occurrences,line[2],line.length==4?line[3]:null));
                 trigrams.put(line[1],followers);
             }
         }
         FileWriter fileWriter= new FileWriter("tri_result.txt");
         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-
         for (int i=0;i<20;i++){
             String firstWord = "<BOS>";
             List<TriFollower> followers = trigrams.get(firstWord);
-            TriFollower follower;
+            TriFollower follower=null;
             do{
-                follower = followers.get(new Random().nextInt(followers.size()));
+                if (followers.size()==0)
+                    break;
+                int occurrences=0;
+                for (TriFollower f:followers){
+                    occurrences+=f.getOccurrences();
+                }
+                int selected = new Random().nextInt(occurrences);
+                for (TriFollower f:followers) {
+                    if (f.getOccurrences() < selected){
+                        selected -= f.getOccurrences();
+                        continue;
+                    }
+                    follower=f;
+                    break;
+                }
                 bufferedWriter.write(follower.getFollower1()+" ");
                 firstWord = follower.getFollower1();
                 final String f2 = follower.getFollower2();
                 followers = trigrams.get(firstWord)
                         .stream().filter(t->t.getFollower1().equals(f2)).collect(Collectors.toList());
-                if (followers.size()==0)
-                    break;
             }while (!follower.getFollower2().equals("<EOS>")&&trigrams.containsKey(firstWord));
-            bufferedWriter.write((follower.getFollower2().equals("<EOS>")?"":follower.getFollower2()+" "));
+            if (follower!=null)
+                bufferedWriter.write((follower.getFollower2().equals("<EOS>")?"":follower.getFollower2()+" "));
         }
         bufferedWriter.close();
     }
@@ -52,14 +64,15 @@ public class Main {
         HashMap<String,List<BiFollower>> bigrams = new HashMap<>();
         while (scanner.hasNextLine()){
             String[] line = scanner.nextLine().split(" ");
-            if(Integer.parseInt(line[0])<3)
+            int occurrences = Integer.parseInt(line[0]);
+            if(occurrences<3)
                 continue;
             List<BiFollower> entry = bigrams.get(line[1]);
             if (entry!=null){
-                entry.add(new BiFollower(Integer.parseInt(line[0]),line[2]));
+                entry.add(new BiFollower(occurrences,line[2]));
             }else {
                 List<BiFollower> followers = new ArrayList<>();
-                followers.add(new BiFollower(Integer.parseInt(line[0]),line[2]));
+                followers.add(new BiFollower(occurrences,line[2]));
                 bigrams.put(line[1],followers);
             }
         }
@@ -69,9 +82,21 @@ public class Main {
             String word = "<BOS>";
             do{
                 List<BiFollower> followers = bigrams.get(word);
-                word = followers.get(new Random().nextInt(followers.size())).getFollower();
-                if(!word.equals("<EOS>"))
-                    bufferedWriter.write(word+" ");
+                int occurences=0;
+                for (BiFollower follower:followers){
+                    occurences+=follower.getOccurrences();
+                }
+                int selected = new Random().nextInt(occurences);
+                for (BiFollower follower:followers){
+                    if (follower.getOccurrences()<selected)
+                        selected-=follower.getOccurrences();
+                    else {
+                        word=follower.getFollower();
+                        if(!word.equals("<EOS>"))
+                            bufferedWriter.write(word+" ");
+                        break;
+                    }
+                }
             } while (!word.equals("<EOS>")&&bigrams.containsKey(word));
         }
         bufferedWriter.close();
