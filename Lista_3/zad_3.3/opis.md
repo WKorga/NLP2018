@@ -22,3 +22,14 @@ Potrzebne wartości:
 * Zaczynamy od uczciwej kości.
 
 ## Wyniki
+
+Miarą poprawności algorytmu jest ilość poprawnie odgadniętych stanów podzielona przez ilość rzutów.
+
+W celu znalezienia miary średniej poprawności każdego z algorytmów, przeprowadzone zostało 1000 losowań, których wyniki zostały
+uśrednione.
+
+#### Algorytm heurystyczny
+Dla wielkości okna 60 i granicznej ilości szóstek równej 15, algorytm uzyskał w 1000 próbach średni wynik **84,70%**
+
+#### Algorytm forward-backward
+W 1000 próbach średni wynik poprawności algorytmu wyniósł **87,06%**

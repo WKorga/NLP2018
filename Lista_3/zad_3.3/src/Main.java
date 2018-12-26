@@ -4,7 +4,7 @@ import java.util.List;
 public class Main {
     private static List<Throw> sequence;
     public static void main(String[] args) {
-        int tries = 100;
+        int tries = 1000;
         double totalHCount=0;
         double totalFbCount=0;
         for (int j=0;j<tries;j++){
@@ -27,8 +27,8 @@ public class Main {
         return;
     }
     private static List<Boolean> useHeuristicApproach(){
-        int windowSize = 23;
-        int border = 10;
+        int windowSize = 60;
+        int border = 15;
         List<List<Boolean>> results = new ArrayList<>();
         for (int i=0;i<sequence.size();i++){
             results.add(new ArrayList<>());
